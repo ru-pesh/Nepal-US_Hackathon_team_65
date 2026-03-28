@@ -1,0 +1,40 @@
+How to Set Up and Run the Application Locally
+=============================================
+
+If you have just downloaded or cloned this project from GitHub, follow these steps to run the "mental_health_app" on your local machine.
+
+Prerequisites
+-------------
+1. Install Node.js:
+   - Go to the official Node.js website: https://nodejs.org/
+   - Download and install the latest "LTS" (Long Term Support) version for your operating system (Windows/Mac/Linux). 
+   - Installing Node.js will automatically install "npm" (Node Package Manager), which is required to install the project dependencies.
+   - To verify the installation, open your terminal or command prompt and run:
+     node -v
+     npm -v
+     (Both commands should print out a version number.)
+
+Steps to Run the Application
+----------------------------
+1. Open your terminal (Command Prompt, PowerShell, or Git Bash).
+
+2. Navigate into the application folder:
+   cd mental_health_app
+   (Make sure you are inside the `mental_health_app` folder where the `package.json` file is located.)
+
+3. Install the required dependencies:
+   Run the following command to download all the necessary packages for the project:
+   npm install
+
+4. Start the development server:
+   Once the installation is complete, start the application by running:
+   npm run dev
+
+5. View the app in your browser:
+   Open your web browser (Chrome, Edge, Safari, etc.) and go to:
+   http://localhost:3000
+
+Troubleshooting
+---------------
+- If you see a "Next.js package not found" or "Turbopack error", it means your dependencies are corrupted or incomplete. Delete the `node_modules` and `.next` folders inside `mental_health_app` and run `npm install` again.
+- If port 3000 is already in use by another application, Next.js will automatically try to use port 3001 or you can stop the other application.
