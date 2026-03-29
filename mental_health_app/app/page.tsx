@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import GoalsView from "./components/GoalsView";
+import VitalsView from "./components/VitalsView";
+import { getReflectionInsight } from "./lib/gemini";
 import { ReflectionEntry, Goal, AppTheme } from "./lib/types";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -15,7 +17,7 @@ const MOODS = [
 
 
 
-const NAV_ITEMS = ["My Roadmap", "Goals", "Reflections", "Insights", "Settings"];
+const NAV_ITEMS = ["My Roadmap", "Goals", "Reflections", "Insights", "Vitals", "Settings"];
 const MOOD_EMOJIS: Record<number, string> = { 1: "😢", 2: "😑", 3: "🙂", 4: "😄", 5: "😊" };
 const ACCENT_COLORS = [
   { name: "Purple", primary: "#8b5cf6", secondary: "#ec4899" },
@@ -189,6 +191,63 @@ function BreathingModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+// ─── Reflection Card (Inner) ──────────────────────────────────────────────────
+function ReflectionCard({ entry, index, entries }: { entry: ReflectionEntry, index: number, entries: ReflectionEntry[] }) {
+  const [insight, setInsight] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleGetInsight = async () => {
+    setLoading(true);
+    try {
+      const recentMoods = entries.slice(-5).map(e => MOODS.find(m => m.value === e.mood)?.label || "neutral");
+      const res = await getReflectionInsight(entry.text, MOODS.find(m => m.value === entry.mood)?.label || "neutral", recentMoods);
+      setInsight(res);
+    } catch (e) {
+      setInsight("Unable to reach the wellness coach right now. Check your connection.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="reflection-card" style={{ animationDelay: `${index * 0.07}s` }}>
+      <div className="reflection-card-header">
+        <div className="reflection-mood-badge">
+          <span className="reflection-mood-emoji">{MOOD_EMOJIS[entry.mood]}</span>
+          <span className="reflection-mood-label">{MOODS.find(m => m.value === entry.mood)?.label}</span>
+        </div>
+        <span className="reflection-date">{entry.date}</span>
+      </div>
+      <p className="reflection-text">{entry.text}</p>
+
+      <div style={{ marginTop: "1rem", borderTop: "1px solid var(--border-glass)", paddingTop: "1rem" }}>
+        {insight ? (
+          <div style={{
+            padding: "1rem",
+            background: "rgba(139,92,246,0.06)",
+            borderRadius: "12px",
+            fontSize: "0.85rem",
+            lineHeight: "1.6",
+            color: "var(--text-primary)",
+            border: "1px solid rgba(139,92,246,0.1)"
+          }}>
+            <strong style={{ display: "block", marginBottom: "6px", color: "var(--accent-purple)", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "1px" }}>✨ AI Therapeutic Insight</strong>
+            {insight}
+          </div>
+        ) : (
+          <button
+            className="save-btn"
+            style={{ maxWidth: "160px", padding: "8px 12px", fontSize: "0.75rem", background: "rgba(139,92,246,0.1)", color: "var(--accent-purple)", border: "1px solid rgba(139,92,246,0.2)" }}
+            onClick={handleGetInsight}
+            disabled={loading}
+          >
+            {loading ? "⏳ Thinking..." : "✨ Get AI Insight"}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Reflections View ─────────────────────────────────────────────────────────
 function ReflectionsView({ entries }: { entries: ReflectionEntry[] }) {
   const [filter, setFilter] = useState<"all" | "week" | "month">("all");
@@ -222,16 +281,7 @@ function ReflectionsView({ entries }: { entries: ReflectionEntry[] }) {
         ) : (
           <div className="reflection-list">
             {filtered.slice().reverse().map((entry, i) => (
-              <div key={entry.id} className="reflection-card" style={{ animationDelay: `${i * 0.07}s` }}>
-                <div className="reflection-card-header">
-                  <div className="reflection-mood-badge">
-                    <span className="reflection-mood-emoji">{MOOD_EMOJIS[entry.mood]}</span>
-                    <span className="reflection-mood-label">{MOODS.find(m => m.value === entry.mood)?.label}</span>
-                  </div>
-                  <span className="reflection-date">{entry.date}</span>
-                </div>
-                <p className="reflection-text">{entry.text}</p>
-              </div>
+              <ReflectionCard key={entry.id} entry={entry} index={i} entries={entries} />
             ))}
           </div>
         )}
@@ -599,6 +649,13 @@ export default function Home() {
 
         {/* ── Settings ── */}
         {activeNav === "Settings" && <div className="view-fade"><SettingsView theme={theme} setTheme={applyTheme} setUserName={setUserName} setUserAvatar={setUserAvatar} /></div>}
+
+        {/* ── Vitals ── */}
+        {activeNav === "Vitals" && (
+          <div className="view-fade">
+            <VitalsView moodHistory={entries.map(e => ({ mood: MOODS.find(m => m.value === e.mood)?.label || "neutral", date: e.date }))} />
+          </div>
+        )}
 
         {/* ── Goals ── */}
         {activeNav === "Goals" && (
