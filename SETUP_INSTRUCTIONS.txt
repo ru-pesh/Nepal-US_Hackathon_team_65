@@ -1,40 +1,115 @@
-How to Set Up and Run the Application Locally
-=============================================
+MindfulVerse — Setup Instructions
+===================================
 
 If you have just downloaded or cloned this project from GitHub, follow these steps to run the "mental_health_app" on your local machine.
+
 
 Prerequisites
 -------------
 1. Install Node.js:
-   - Go to the official Node.js website: https://nodejs.org/
-   - Download and install the latest "LTS" (Long Term Support) version for your operating system (Windows/Mac/Linux). 
-   - Installing Node.js will automatically install "npm" (Node Package Manager), which is required to install the project dependencies.
-   - To verify the installation, open your terminal or command prompt and run:
-     node -v
-     npm -v
-     (Both commands should print out a version number.)
+   - Go to: https://nodejs.org/
+   - Download and install the latest "LTS" (Long Term Support) version.
+   - Installing Node.js also installs "npm" (Node Package Manager).
+   - Verify the installation by running in your terminal:
+       node -v
+       npm -v
+     (Both should print a version number like v20.x.x)
+
 
 Steps to Run the Application
 ----------------------------
-1. Open your terminal (Command Prompt, PowerShell, or Git Bash).
 
-2. Navigate into the application folder:
+STEP 1 — Open your terminal (Command Prompt, PowerShell, or Git Bash).
+
+STEP 2 — Navigate into the application folder:
    cd mental_health_app
-   (Make sure you are inside the `mental_health_app` folder where the `package.json` file is located.)
+   (This is the folder containing package.json)
 
-3. Install the required dependencies:
-   Run the following command to download all the necessary packages for the project:
+STEP 3 — Install the required dependencies:
    npm install
 
-4. Start the development server:
-   Once the installation is complete, start the application by running:
+STEP 4 — Set up environment variables (REQUIRED for AI features):
+   a) Duplicate the file named ".env.example" inside the mental_health_app folder.
+   b) Rename the copy to ".env.local" (note the dot at the start).
+   c) Open .env.local in any text editor and replace the placeholder with your key:
+
+      NEXT_PUBLIC_OPENROUTER_API_KEY=your_actual_key_here
+
+   Where to get a free key:
+   - Visit https://openrouter.ai/
+   - Create a free account
+   - Go to https://openrouter.ai/keys and click "Create Key"
+   - Paste the generated key into .env.local
+
+   NOTE: Without this key, the app will still run fully, but the AI Vitals,
+   Therapeutic Reflection Insights, and Morning Check-in features will not work.
+
+STEP 5 — Start the development server:
    npm run dev
 
-5. View the app in your browser:
-   Open your web browser (Chrome, Edge, Safari, etc.) and go to:
-   http://localhost:3000
+STEP 6 — View the app in your browser:
+   Open: http://localhost:3000
+
+
+Features Overview
+-----------------
+- My Roadmap     : Daily mood check-in, goals tracker, mood trend chart
+- Goals          : Add career, mental, and physical goals with a calendar view
+- Reflections    : Journal history with AI-powered therapeutic insights
+- Insights       : Mood heatmap, distribution graph, and trend analysis
+- Vitals         : 14-day health analytics with Daily / Weekly / Monthly AI analysis
+- Settings       : Profile, themes (Dark / Cool / Happy), and accent colors
+
+
+AI Features (Powered by Gemini via OpenRouter)
+-----------------------------------------------
+The following features require a valid NEXT_PUBLIC_OPENROUTER_API_KEY in .env.local:
+
+1. Morning Wellness Brief  — Personalized daily check-in based on your vitals data.
+2. AI Vitals Analysis      — Click Daily / Weekly / Monthly buttons in the Vitals tab.
+3. Therapeutic Reflections — "✨ Get AI Insight" button on every journal entry.
+
+Model used: google/gemini-2.0-flash-lite-001
+Endpoint:   https://openrouter.ai/api/v1/chat/completions
+
 
 Troubleshooting
 ---------------
-- If you see a "Next.js package not found" or "Turbopack error", it means your dependencies are corrupted or incomplete. Delete the `node_modules` and `.next` folders inside `mental_health_app` and run `npm install` again.
-- If port 3000 is already in use by another application, Next.js will automatically try to use port 3001 or you can stop the other application.
+- "Module not found" or "Next.js package not found":
+    Delete node_modules and .next folders, then run:  npm install
+
+- Port 3000 already in use:
+    Next.js will automatically try port 3001. Check the terminal output for the URL.
+
+- AI features show error / no response:
+    a) Make sure .env.local exists and NEXT_PUBLIC_OPENROUTER_API_KEY is set correctly.
+    b) Check your OpenRouter account at https://openrouter.ai/activity for errors.
+    c) The model "google/gemini-2.0-flash-lite-001" may require a small credit balance.
+       If you have $0 credit, add $3–5 to your account (a single request costs ~$0.0001).
+    d) For a completely free alternative, change the model in app/lib/gemini.ts to:
+         meta-llama/llama-3.3-70b-instruct:free
+
+- AI starts with generic"It looks like you've been tracking..." text:
+    This has been fixed in the prompts. If you still see it, clear your browser cache.
+
+- Data not saving between sessions:
+    All data is stored in your browser's localStorage. Do not use Incognito/Private mode,
+    as it clears localStorage when the window is closed.
+
+
+Data & Privacy
+--------------
+- All your journal entries, goals, mood logs, and settings are stored locally in your
+  browser's localStorage. No data is sent to any server except when you click an
+  AI Insight button (which sends only the relevant text/vitals snippet to OpenRouter).
+- The OpenRouter API key is loaded client-side (NEXT_PUBLIC_*). Do NOT commit .env.local
+  to GitHub. The .gitignore is already configured to prevent this.
+
+
+Tech Stack
+----------
+- Framework : Next.js 14 (App Router + Turbopack)
+- Language  : TypeScript
+- Styling   : Tailwind CSS + Custom CSS Variables
+- AI        : Google Gemini via OpenRouter API
+- Storage   : Browser localStorage (no database required)
